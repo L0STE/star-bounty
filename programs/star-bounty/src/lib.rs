@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("3Wp5vW3yQeMTNKPxe4JCkEhFFrWdhw4tFt879tsMG2K9");
+declare_id!("Ek8UkGyAXwg9qBPn82BEdNHjDxFHDjXhUQmRrTzmczxa");
 
 mod context;
 use context::*;
@@ -15,8 +15,9 @@ pub mod star_bounty {
 
     
     pub fn initialize_pool(ctx: Context<InitializePool>) -> Result<()> {
+        ctx.accounts.populate_creator([ctx.bumps.creator])?;
         ctx.accounts.delegate_token_account([ctx.bumps.creator])?;
-        ctx.accounts.create_pool([ctx.bumps.creator])?;
+        ctx.accounts.create_pool([ctx.bumps.position_nft_mint])?;
         ctx.accounts.revoke_token_account([ctx.bumps.creator])
     }
 

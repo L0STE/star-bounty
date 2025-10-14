@@ -25,7 +25,7 @@ pub struct InitializePool<'info> {
         space = Creator::DISCRIMINATOR.len() + Creator::INIT_SPACE,
         seeds = [
             b"creator",
-            mint_b.key().as_ref()
+            mint_a.key().as_ref()
         ],
         bump
     )]
@@ -134,10 +134,19 @@ pub struct InitializePool<'info> {
 }
 
 impl<'info> InitializePool<'info> {
+    pub fn populate_creator(&mut self, bump: [u8; 1]) -> Result<()> {
+        self.creator.set_inner(Creator {
+            bump,
+            streams: 0,
+        });
+
+        Ok(())
+    }
+    
     pub fn delegate_token_account(&mut self, bump: [u8; 1]) -> Result<()> {
         let signer_seeds: [&[&[u8]];1] = [&[
             b"creator".as_ref(),
-            self.mint_b.to_account_info().key.as_ref(),
+            self.mint_a.to_account_info().key.as_ref(),
             &bump
         ]];
 
@@ -173,7 +182,7 @@ impl<'info> InitializePool<'info> {
     pub fn revoke_token_account(&mut self, bump: [u8; 1]) -> Result<()> {
         let signer_seeds: [&[&[u8]];1] = [&[
             b"creator".as_ref(),
-            self.mint_b.to_account_info().key.as_ref(),
+            self.mint_a.to_account_info().key.as_ref(),
             &bump
         ]];
 

@@ -6,6 +6,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Token;
 use anchor_spl::associated_token::AssociatedToken;
+use streamflow_sdk::Create;
 
 use crate::state::Creator;
 use crate::ADMIN;
@@ -51,6 +52,7 @@ pub struct CreateStream<'info> {
             b"strm",
             metadata.key().as_ref(),
         ],
+        seeds::program = streamflow_sdk::id(),
         bump,
     )]
     /// CHECK: Checked by address constraint
@@ -92,71 +94,50 @@ impl<'info> CreateStream<'info> {
             &bump,
         ]];
 
-        let accounts = vec![
-            AccountMeta::new(self.sender.key(), true),
-            AccountMeta::new(self.sender_tokens.key(), false),
-            AccountMeta::new(self.recipient.key(), false),
-            AccountMeta::new(self.metadata.key(), true),
-            AccountMeta::new(self.escrow_tokens.key(), false),
-            AccountMeta::new(self.recipient_tokens.key(), false),
-            AccountMeta::new(self.streamflow_treasury.key(), false),
-            AccountMeta::new(self.streamflow_treasury_tokens.key(), false),
-            AccountMeta::new(self.withdrawor.key(), false),
-            AccountMeta::new(self.streamflow_treasury.key(), false),                // partner
-            AccountMeta::new(self.streamflow_treasury_tokens.key(), false),         // partner_tokens
-            AccountMeta::new_readonly(self.mint.key(), false),
-            AccountMeta::new_readonly(self.streamflow_treasury.key(), false),       // fee_oracle
-            AccountMeta::new_readonly(self.rent.key(), false),
-            AccountMeta::new_readonly(self.timelock_program.key(), false),
-            AccountMeta::new_readonly(self.token_program.key(), false),
-            AccountMeta::new_readonly(self.associated_token_program.key(), false),
-            AccountMeta::new_readonly(self.system_program.key(), false),
-        ];
-
-        let instruction_data = streamflow_sdk::instruction::Create {
-            start_time: Clock::get()?.unix_timestamp as u64,
-            net_amount_deposited: 1_000_000,
-            period: 60 * 60 * 24 * 30,
-            amount_per_period: 1_000_000,
-            cliff: 0,
-            cliff_amount: 0,
-            cancelable_by_sender: true,
-            cancelable_by_recipient: false,
-            automatic_withdrawal: true,
-            transferable_by_sender: true,
-            transferable_by_recipient: false,
-            can_topup: true,
-            stream_name: [0; 64],
-            withdraw_frequency: 60 * 60 * 24 * 30,
-            pausable: None,
-            can_update_rate: None,
-        }.try_to_vec()?;
-
-        let account_infos = &[
-            self.sender.to_account_info(),
-            self.sender_tokens.to_account_info(),
-            self.recipient.to_account_info(),
-            self.metadata.to_account_info(),
-            self.escrow_tokens.to_account_info(),
-            self.recipient_tokens.to_account_info(),
-            self.streamflow_treasury.to_account_info(),
-            self.streamflow_treasury_tokens.to_account_info(),
-            self.withdrawor.to_account_info(),
-            self.mint.to_account_info(),
-            self.rent.to_account_info(),
+        let ctx = CpiContext::new_with_signer(
             self.timelock_program.to_account_info(),
-            self.token_program.to_account_info(),
-            self.associated_token_program.to_account_info(),
-            self.system_program.to_account_info(),
-        ];
-        
-        let instruction = anchor_lang::solana_program::instruction::Instruction {
-            program_id: streamflow_sdk::id(),
-            accounts,
-            data: instruction_data,
-        };
+            streamflow_sdk::cpi::accounts::Create {
+                sender: self.sender.to_account_info(),
+                sender_tokens: self.sender_tokens.to_account_info(),
+                recipient: self.recipient.to_account_info(),
+                metadata: self.metadata.to_account_info(),
+                escrow_tokens: self.escrow_tokens.to_account_info(),
+                recipient_tokens: self.recipient_tokens.to_account_info(),
+                streamflow_treasury: self.streamflow_treasury.to_account_info(),
+                streamflow_treasury_tokens: self.streamflow_treasury_tokens.to_account_info(),
+                withdrawor: self.withdrawor.to_account_info(),
+                partner: self.streamflow_treasury.to_account_info(),
+                partner_tokens: self.streamflow_treasury_tokens.to_account_info(),
+                mint: self.mint.to_account_info(),
+                fee_oracle: self.streamflow_treasury.to_account_info(),
+                rent: self.rent.to_account_info(),
+                timelock_program: self.timelock_program.to_account_info(),
+                token_program: self.token_program.to_account_info(),
+                associated_token_program: self.associated_token_program.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+            },
+            signer_seeds
+        );
 
-        invoke_signed(&instruction, account_infos, signer_seeds)?;
+        streamflow_sdk::cpi::create(
+            ctx, 
+            Clock::get()?.unix_timestamp as u64, 
+            1_000_000,
+            60 * 60 * 24 * 30,
+            1_000_000,
+            0,
+            0,
+            true,
+            false,
+            true,
+            true,
+            false,
+            true,
+            [0; 64],
+            60 * 60 * 24 * 30,
+            None,
+            None,
+        )?;
 
         // Add a Stream
         self.creator.streams += 1;

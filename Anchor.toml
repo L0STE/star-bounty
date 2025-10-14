@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-star_bounty = "3Wp5vW3yQeMTNKPxe4JCkEhFFrWdhw4tFt879tsMG2K9"
+star_bounty = "Ek8UkGyAXwg9qBPn82BEdNHjDxFHDjXhUQmRrTzmczxa"
 
 [registry]
 url = "https://api.apr.dev"
