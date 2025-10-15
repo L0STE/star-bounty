@@ -83,7 +83,7 @@ Note: In the tests the `mint_b` rapresent USDC but it should be flipped to your 
 
 ---
 
-## 🔄 Claim Fees Instruction
+## Claim Fees Instruction
 
 ### The Permissionless Design
 ```rust
@@ -146,7 +146,7 @@ pub fn distribute(&mut self, remaining_accounts: &[AccountInfo]) -> Result {
 }
 ```
 
-### 📐 Fee Distribution Formula
+### Fee Distribution Formula
 
 ```rust
 // 1. Calculate total locked across all investors
