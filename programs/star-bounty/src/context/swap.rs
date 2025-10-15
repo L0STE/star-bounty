@@ -57,16 +57,14 @@ pub struct Swap<'info> {
     // Payer's token accounts
     #[account(
         mut,
-        associated_token::mint = mint_a,
-        associated_token::authority = payer,
+        token::authority = payer,
     )]
-    pub payer_token_a: Box<Account<'info, TokenAccount>>,
+    pub input_token_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        associated_token::mint = mint_b,
-        associated_token::authority = payer,
+        token::authority = payer,
     )]
-    pub payer_token_b: Box<Account<'info, TokenAccount>>,
+    pub output_token_account: Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
     #[account(
         seeds = [b"__event_authority"], 
@@ -86,8 +84,8 @@ impl<'info> Swap<'info> {
         let accounts = cp_amm::cpi::accounts::SwapCtx {
             pool_authority: self.pool_authority.to_account_info(),
             pool: self.pool.to_account_info(),
-            input_token_account: self.payer_token_a.to_account_info(),
-            output_token_account: self.payer_token_b.to_account_info(),
+            input_token_account: self.input_token_account.to_account_info(),
+            output_token_account: self.output_token_account.to_account_info(),
             token_a_vault: self.token_a_vault.to_account_info(),
             token_b_vault: self.token_b_vault.to_account_info(),
             token_a_mint: self.mint_a.to_account_info(),

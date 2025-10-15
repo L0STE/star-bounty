@@ -6,7 +6,7 @@ use cp_amm::{
     const_pda::pool_authority::ID as POOL_AUTHORITY_ID, constants::seeds::{CUSTOMIZABLE_POOL_PREFIX, POSITION_NFT_ACCOUNT_PREFIX, POSITION_PREFIX, TOKEN_VAULT_PREFIX }, instructions::initialize_pool::{max_key, min_key}, safe_math::SafeMath, state::{CollectFeeMode, Pool}
 };
 use ruint::aliases::U256;
-use crate::state::InvestorFeePositionOwnerPda;
+use crate::{state::InvestorFeePositionOwnerPda, ADMIN};
 use crate::error::ErrorCode;
 
 #[derive(Accounts)]
@@ -24,7 +24,7 @@ pub struct Deposit<'info> {
     pub investor_fee_pos_owner: Account<'info, InvestorFeePositionOwnerPda>,
 
     // DAMM V2 Accounts
-    #[account(mut)]
+    #[account(mut, address = ADMIN)]
     pub payer: Signer<'info>,
     #[account(
         mut,
@@ -186,6 +186,12 @@ impl<'info> Deposit<'info> {
         cp_amm::cpi::create_position(ctx)?;
 
         // Add liquidity to the position
+        let signer_seeds: [&[&[u8]];1] = [&[
+            b"investor_fee_pos_owner".as_ref(),
+            self.mint_b.to_account_info().key.as_ref(),
+            &self.investor_fee_pos_owner.bump
+        ]];
+
         let accounts = cp_amm::cpi::accounts::AddLiquidityCtx {
             owner: self.investor_fee_pos_owner.to_account_info(),
             pool: self.pool.to_account_info(),

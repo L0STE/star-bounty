@@ -25,3 +25,10 @@ export function deriveMetadataAccount(creator: PublicKey, stream: number): Publi
     STAR_BOUNTY_PROGRAM_ID
   )[0];
 }
+
+export function deriveInvestorFeePositionOwnerAddress(mintB: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("investor_fee_pos_owner"), mintB.toBuffer()],
+    STAR_BOUNTY_PROGRAM_ID
+  )[0];
+}
